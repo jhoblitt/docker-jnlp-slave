@@ -20,17 +20,23 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-FROM java:8-jdk
-MAINTAINER Nicolas De Loof <nicolas.deloof@gmail.com>
+FROM centos:7
+MAINTAINER LSST SQRE Team <sqre-admin@lists.lsst.org>
+
+RUN yum install -y java-1.8.0-openjdk.x86_64 curl wget
 
 ENV HOME /home/jenkins
-RUN useradd -c "Jenkins user" -d $HOME -m jenkins
+RUN useradd -c "Jenkins user" -g wheel -d $HOME -m jenkins
 
 RUN curl --create-dirs -sSLo /usr/share/jenkins/slave.jar http://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/2.52/remoting-2.52.jar \
   && chmod 755 /usr/share/jenkins \
   && chmod 644 /usr/share/jenkins/slave.jar
 
 COPY jenkins-slave /usr/local/bin/jenkins-slave
+
+RUN yum install -y sudo
+RUN sed -i -e 's/^.*requiretty/#Defaults requiretty/' /etc/sudoers
+RUN sed -i -e 's/^%wheel\tALL=(ALL)\tALL/%wheel\tALL=(ALL)\tNOPASSWD: ALL/' /etc/sudoers
 
 VOLUME /home/jenkins
 WORKDIR /home/jenkins
